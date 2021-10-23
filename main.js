@@ -1,7 +1,7 @@
 var windowW = $(window).width(); var windowH = $(window).height(); var cnv; var browserZoomLevel;
 var sidebarActive = false; var sidebar; var sidebarW = windowW / 40; var sidebarH = windowH / 25;
 var menuAnimation = false; var menuW; var menuH;  var header; var sideMenuExitBox; var sidebarBox;
-var s20; var s21; var wed; var numAlb = 3; var album = new Array(numAlb); var nullAlbum;
+var s20; var s21; var wed; var numAlb = 3; var album = new Array(numAlb); var nullAlbum; var mobile;
 let albumW; let albumH; let albumSpace; let photo; var previewsCreated = false; var hovering = false;
 /*const targetElement = document.querySelector('#screen');
 bodyScrollLock.disableBodyScroll(targetElement);*/
@@ -9,16 +9,24 @@ bodyScrollLock.disableBodyScroll(targetElement);*/
 function setup()
 {
     browserZoomLevel = (Math.round(window.devicePixelRatio * 100))/100;
+    menuW = windowW/4; menuH = windowH - 1;
+
     cnv = createCanvas(windowW, windowH);
     cnv.position(0,0);
+
+    if(windowW > windowH) { mobile = false; } //desktop or landscape
+    else { let tempW = windowW; windowW = windowH; windowH = tempW; mobile = true;}
+
+    albumW = menuW/4; albumH = albumW*2;
+    albumSpace = albumW;
+    eleFont = windowH/40;
     s20 = "Summer '20"; s21 = "Summer '21"; wed = "Wedding";
     //s20 = createElement('h1', "Summer '20"); s21 = createElement('h1', "Summer '21"); wed = createElement('h1', "Wedding");
-    menuW = windowW/4; menuH = windowH - 1; eleFont = windowH/40;
+
     //s20.style('font-size', eleFont + 'px'); s21.style('font-size', eleFont + 'px'); wed.style('font-size', eleFont + 'px');
 /*    for(let i = 0; i < numAlb; i++){ */
     let albumBoxes = new Array(numAlb);
-    albumW = menuW/4; albumH = albumW*2;
-    albumSpace = albumW;
+
 
     for(let i = 0; i < numAlb; i++)
     {
@@ -48,8 +56,7 @@ function draw()
 {
     clear();
     background(252,255,252);
-    if(windowW > windowH)
-        drawSidebarDesktop();
+    drawSidebarDesktop();
 /*    if(previewsCreated)
     {
         for(let i = 0; i < numAlb; i++)
