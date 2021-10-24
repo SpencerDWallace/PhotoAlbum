@@ -3,6 +3,7 @@ var sidebarActive = false; var sidebar; var sidebarW = windowW / 40; var sidebar
 var menuAnimation = false; var menuW; var menuH;  var header; var sideMenuExitBox; var sidebarBox;
 var s20; var s21; var wed; var numAlb = 3; var album = new Array(numAlb); var nullAlbum; var mobile;
 let albumW; let albumH; let albumSpace; let photo; var previewsCreated = false; var hovering = false;
+let currentPhoto = 1; let currentAlbumMax = 25; let imageSuccessfullyLoaded = false; let curAlbum = 0;
 /*const targetElement = document.querySelector('#screen');
 bodyScrollLock.disableBodyScroll(targetElement);*/
 
@@ -34,9 +35,9 @@ function setup()
     }
     //photo = loadImage('./wedding_jacket_tryon.jpeg');
     nullAlbum = new Album(null, null, null, null, null);
-    album[0] = new Album(s20, albumBoxes[0], 0, 0, null);
-    album[1] = new Album(s21, albumBoxes[1], 0, 0, null);
-    album[2] = new Album(wed, albumBoxes[2], 0, 0, null);
+    album[0] = new Album(s20, albumBoxes[0], 0, null, null);
+    album[1] = new Album(s21, albumBoxes[1], 0, null, null);
+    album[2] = new Album(wed, albumBoxes[2], 0, null, null);
     strokeCap(SQUARE);
 }
 
@@ -64,6 +65,12 @@ function draw()
     }*/
 
 
+}
+
+async function imageLoaded(photo) {
+    alert('made it!');
+album[curAlbum].photos = photo;
+curAlbum++;
 }
 
 function mouseClicked()
@@ -99,8 +106,14 @@ function checkAlbumClick(print)
         let y2 = album[i].box.y2 + albumW/10;
         let tempBox = new Box(x,y,x2,y2)
         if (checkRectangle(tempBox)) {
-            if(print)
-                alert('ALBUM ' + i + ' CLICKED!');
+            if(print) {
+                if (currentPhoto < currentAlbumMax)
+                {
+                    currentPhoto++;
+                    removePreviews();
+                    previewsCreated = false;
+                }
+            }
             return i;
         }
     }
@@ -115,7 +128,7 @@ if(mouseX >= box.x && mouseX <= box.x2 && mouseY >= box.y && mouseY <= box.y2)
 return false;
 }
 
-function sideMenu()
+async function sideMenu()
 {
     fill('#77AAFF');
 /*    if(!menuAnimation)
@@ -133,7 +146,7 @@ function sideMenu()
         line(menuW - sidebarW * 0.75, sidebarH * 0.25, menuW - sidebarW * 0.25, sidebarH * 0.75);
         line(menuW - sidebarW * 0.25, sidebarH * 0.25, menuW - sidebarW * 0.75, sidebarH * 0.75);
         strokeWeight(1);
-        drawAlbums();
+        await drawAlbums();
 
 }
 
@@ -142,43 +155,63 @@ function removePreviews()
     for (let i = 0; i < numAlb; i++)
     {
         album[i].photos.remove();
+        album[i].photos = null;
         album[i].title.remove();
     }
 }
 
-function drawAlbums() {
-
-    for (let i = 0; i < numAlb; i++) {
-
+async function drawAlbums() {
+    let i;
+    for (i = 0; i < numAlb; i++) {
+        imageSuccessfullyLoaded = false;
         let albumHover = checkAlbumClick(0);
-        if(albumHover != null && !hovering){
+        if(albumHover != null && !hovering ){
             hovering = true;
-            album[albumHover].photos.remove();
-            album[albumHover].title.remove();
+/*            if(album[albumHover].photos != null) {
+                album[albumHover].photos.remove();
+                album[albumHover].photos = null;
+            }*/
+            //album[albumHover].title.remove();
             album[albumHover].box.x -= albumW/10;
             album[albumHover].box.x2 += albumW/10;
             album[albumHover].box.y -= albumW/10;
             album[albumHover].box.y2 += albumW/10;
-            album[albumHover].photos = createImg('https://spencerdwallace.github.io/Home/wedding_jacket_tryon.jpeg', 'wedding jacket tryon', 'anonymous');
+
+/*            album[albumHover].photos = createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.jpg', 'summer20', 'anonymous', imageLoaded);
+            if(!imageSuccessfullyLoaded) {
+                album[albumHover].photos.remove(); album[albumHover].photos = null;
+                album[albumHover].photos = createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.JPG', 'summer20', 'anonymous', imageLoaded);
+            }
+            imageSuccessfullyLoaded = false;*/
             album[albumHover].photos.size(album[albumHover].box.x2 - album[albumHover].box.x, album[albumHover].box.x2 - album[albumHover].box.x);
             album[albumHover].photos.position(album[albumHover].box.x, album[albumHover].box.y);
-            album[albumHover].title = createElement('h1', '' + album[albumHover].name);
-            album[albumHover].title.style('font-size', eleFont + 'px');
+            //album[albumHover].title = createElement('h1', '' + album[albumHover].name);
+            //album[albumHover].title.style('font-size', eleFont + 'px');
             album[albumHover].title.position(album[albumHover].box.x + albumW/10, album[albumHover].box.y2 );
         }
-        else if(albumHover == null && previewsCreated && hovering){
+        else if(albumHover == null && hovering){
             hovering = false;
-            removePreviews();
+            //removePreviews();
+
             for(let a = 0; a < numAlb; a++)
             {
-                album[a].box.x = (3 * menuW) / 8;
-                album[a].box.y = a * albumH + albumW;
-                album[a].box.x2 = (3 * menuW) / 8 + albumW;
-                album[a].box.y2 = a * albumH + albumW + albumW;
-            }
-            i = 0;
-            previewsCreated = false
+                if(album[a].box.x < (3 * menuW) / 8) {
+    /*                album[a].photos.remove();
+                    album[a].photos = null;
+                    album[a].title.remove();*/
+                    album[a].box.x += albumW/10;
+                    album[a].box.x2 -= albumW/10;
+                    album[a].box.y += albumW/10;
+                    album[a].box.y2 -= albumW/10;
 
+                    album[a].photos.size(album[a].box.x2 - album[a].box.x, album[a].box.x2 - album[a].box.x)
+                    album[a].photos.position(album[a].box.x, album[a].box.y)
+                    album[a].title.position(album[a].box.x, album[a].box.y2 );
+                }
+            }
+            //i = 0;
+            //previewsCreated = false
+            //alert('Hover stop!');
         }
 
         let x = album[i].box.x;
@@ -197,39 +230,26 @@ function drawAlbums() {
         rect(borderX, borderY, borderX2, borderX2);
         fill('rgba(50%,30%,0%,0.6)');
         rect(x - 5, y - 5, x2 + 10, x2 + 10);
-        if (!previewsCreated) {
 
+        if (album[i].photos == null) {
+            await createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.jpg', 'summer20', 'anonymous', imageLoaded);
+            await createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.JPG', 'summer20', 'anonymous', imageLoaded);
+                //alert('Made it to JPG iteration: ' + i);
 
-            album[i].photos = createImg('https://spencerdwallace.github.io/Home/wedding_jacket_tryon.jpeg', 'wedding jacket tryon', 'anonymous');
             album[i].photos.size(x2, x2)
             album[i].photos.position(x, y)
-
-
+            //imageSuccessfullyLoaded = false;
+            //alert('title created for ' + i);
             album[i].title = createElement('h1', '' + album[i].name);
             album[i].title.style('font-size', eleFont + 'px');
-            //album[i].title.style('width', x2 + 'px');
-            //album[i].title.parent(album[i].photos);
-            //album[i].title.center();
+            //album[i].title.style('width', x2 + 'px'); album[i].title.parent(album[i].photos); album[i].title.center();
             album[i].title.position(x, album[i].box.y2 );
-            //album[i].title.center();
-            //albumBoxes[i] = new Box( (3*menuW)/8, i*albumH + albumSpace, albumW, albumW + albumSpace/2  );
+            //album[i].title.center(); albumBoxes[i] = new Box( (3*menuW)/8, i*albumH + albumSpace, albumW, albumW + albumSpace/2  );
         }
-        else{
-        }
-
-
-        //alert('borderX is: ' + borderX + ' borderX2 is: ' + borderX2);
-
-/*        if(i == 0) {
-            fill('rgba(10%,60%,90%,0.6)');
-            rect(x - albumW/10, y - albumW/10, x2 + albumW/5, x2 + albumW/5);
-        }*/
-
-
-
-
     }
-    previewsCreated = true;
+
+
+    //previewsCreated = true;
 }
 
 function sleep(ms) {
