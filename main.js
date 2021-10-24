@@ -3,8 +3,9 @@ var sidebarActive = false; var sidebar; var sidebarW = windowW / 40; var sidebar
 var menuAnimation = false; var menuW; var menuH;  var header; var sideMenuExitBox; var sidebarBox;
 var s20; var s21; var wed; var numAlb = 3; var album = new Array(numAlb); var nullAlbum; var mobile;
 let albumW; let albumH; let albumSpace; let photo; var previewsCreated = false; var hovering = false;
-let currentPhoto = 1; let currentAlbumMax = new Array(numAlb); let imageSuccessfullyLoaded = false; let curAlbum = 0;
-var mainImage;
+let currentPhoto = 0; let currentAlbumMax = new Array(numAlb); let imageSuccessfullyLoaded = false; let curAlbum = -1;
+var mainImage; var imageLoading = false;
+var rightBox; var leftBox;
 /*const targetElement = document.querySelector('#screen');
 bodyScrollLock.disableBodyScroll(targetElement);*/
 
@@ -57,17 +58,67 @@ let Album = class{
     }
 }
 
+function drawMainFrame()
+{
+
+    strokeWeight(3);
+    //background
+    stroke('rgba(80%,80%,80%,0.6)');
+    fill('rgba(50%,67%,100%,0.1)');
+    rect( menuW, 1, windowW - menuW*2, windowH-2);
+    //frame
+    stroke('rgba(50%,67%,100%,0.6)');
+    fill('rgba(80%,80%,80%,0.4)');
+
+    if(mainImage!= null) {
+        let res = mainImage.size().height / mainImage.size().width;
+        stroke(150);
+        fill('rgba(80%,80%,80%,0.4)');
+        rect(windowW / 3 - 22, windowH / 2 - windowW / 6 * res - 22, windowW / 3 + 44, windowW / 3 * res + 44);
+
+        stroke('rgba(50%,67%,100%,0.6)');
+        fill('rgba(80%,80%,80%,0.4)');
+        rect(windowW / 3 - 20, windowH / 2 - windowW / 6 * res - 20, windowW / 3 + 40, windowW / 3 * res + 40);
+
+        stroke('rgba(50%,67%,100%,0.8)');
+        fill('rgba(80%,80%,80%,0.4)');
+        rect(windowW / 3 - 3, windowH / 2 - windowW / 6 * res - 3, windowW / 3 + 6, windowW / 3 * res + 6);
+
+        stroke(150);
+        fill('rgba(80%,80%,80%,0.4)');
+        rect(windowW / 3 - 1, windowH / 2 - windowW / 6 * res - 1, windowW / 3 + 2, windowW / 3 * res + 2);
+    }
+    //end frame
+    //buttons
+    let x = (menuW*2 - (windowW/3 + 44))/2;
+    x = x*0.25;
+    strokeWeight(3);
+    stroke('rgba(80%,80%,80%,0.6)');
+    fill('rgba(50%,67%,100%,0.1)');
+    rect( menuW + x, windowH/2 - x*1.5, 2*x, x*3); //left button
+    rect( menuW + 2*menuW - x*3, windowH/2 - x*1.5, 2*x, x*3); //right button
+    leftBox = new Box(menuW + x, windowH/2 - x*1.5, menuW + 3*x, windowH/2 + x*1.5);
+    rightBox = new Box(menuW + 2*menuW - x*3, windowH/2 - x*1.5, menuW + 2*menuW - x, windowH/2 + x*1.5);
+
+    strokeWeight(5);
+    smooth();
+    stroke('rgba(60%,60%,60%,0.6)');
+    line(menuW + x + x*0.4, windowH/2, menuW + 3*x - x*0.4, windowH/2 - x);
+    line(menuW + x + x*0.4, windowH/2, menuW + 3*x - x*0.4, windowH/2 + x);
+    line(menuW + 2*menuW - x - x*0.4, windowH/2, menuW + 2*menuW - 3*x + x*0.4, windowH/2 - x);
+    line(menuW + 2*menuW - x - x*0.4, windowH/2, menuW + 2*menuW - 3*x + x*0.4, windowH/2 + x);
+}
+
 function draw()
 {
     clear();
     background(252,255,252);
+    strokeWeight(1);
     drawSidebarDesktop();
-/*    if(previewsCreated)
+    if(imageLoading)
     {
-        for(let i = 0; i < numAlb; i++)
-            album[i].photos.mouseMoved(alert('MOUSE IS OVER ALBUM: ' + i));
-    }*/
-
+        drawMainFrame();
+    }
 
 }
 
@@ -82,8 +133,8 @@ function mouseClicked() {
             removePreviews();
         } else {
             let displayAlbum;
-            displayAlbum = checkAlbumClick(1);
-            if (displayAlbum != null);
+            displayAlbum = checkAlbumClick();
+            if (displayAlbum != null)
             {
              if(curAlbum != displayAlbum)
                  currentPhoto = 1;
@@ -92,52 +143,52 @@ function mouseClicked() {
             }
         }
     }
+    if(rightBox != null && leftBox != null) {
+        //alert('current album is: ' + curAlbum + ' max photos is: ' + currentAlbumMax[curAlbum]);
+        if (checkRectangle(rightBox)) {
+            if(currentPhoto < currentAlbumMax[curAlbum]) {
+                currentPhoto++;
+                loadAlbum(curAlbum);
+            }
+        } else if (checkRectangle(leftBox)) {
+            if(currentPhoto > 1) {
+                currentPhoto--;
+                loadAlbum(curAlbum);
+            }
+        }
+
+    }
 }
 
 function loadAlbum(album)
 {
-    curAlbum = album
+    curAlbum = album;
+    //alert('current album is ' + curAlbum);
     if(mainImage != null)
         mainImage.remove();
 
-    let albumName;
-    let res;
     if(album == 0 || album == 2) {
         createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.png', 'summer20', 'anonymous', imageLoaded);
     }
     else if(album == 1) {
         createImg('https://spencerdwallace.github.io/PhotoAlbum/summer21/' + currentPhoto + '.jpg', 'summer21', 'anonymous', imageLoaded);
     }
-    /*
-    res = mainImage.size().height/mainImage.size().width;
-    mainImage.size(windowW/3, windowW/3*res);
-    mainImage.position(windowW/3,windowH/2 - windowW/6*res);
-    fill(100);
-    rect(windowW/3, windowH/2 - windowW/6*res, windowW/3, windowW/3*res);
-    alert('made it! Album is: ' + album + ' current phtoto is: ' + currentPhoto);
-*/
+    imageLoading = true;
+
 }
 
-function checkAlbumClick(print)
+function checkAlbumClick()
 {
-    for(let i = 0; i < numAlb; i++)
-    {
-        let x = album[i].box.x - albumW/10;
-        let x2 = album[i].box.x2 + albumW/10;
-        let y = album[i].box.y - albumW/10;
-        let y2 = album[i].box.y2 + albumW/10;
-        let tempBox = new Box(x,y,x2,y2)
+    for(let i = 0; i < numAlb; i++) {
+        let x = album[i].box.x - albumW / 10;
+        let x2 = album[i].box.x2 + albumW / 10;
+        let y = album[i].box.y - albumW / 10;
+        let y2 = album[i].box.y2 + albumW / 10;
+        let tempBox = new Box(x, y, x2, y2)
         if (checkRectangle(tempBox)) {
-            if(print) {
-                if (currentPhoto < currentAlbumMax[curAlbum])
-                {
-                    currentPhoto++;
-                    removePreviews();
-                    //previewsCreated = false;
-                }
-            }
             return i;
         }
+
     }
     return null;
 }
@@ -194,7 +245,7 @@ async function drawAlbums() {
     for (i = 0; i < numAlb; i++) {
 
         imageSuccessfullyLoaded = false;
-        let albumHover = checkAlbumClick(0);
+        let albumHover = checkAlbumClick();
         if(albumHover != null && !hovering && album[albumHover].photos != null){
             hovering = true;
             album[albumHover].box.x -= albumW/10;
@@ -307,7 +358,8 @@ function drawSidebarDesktop()
     {
 
         noStroke();
-        fill('#77AAFF');
+        ///fill('#77AAFF');
+        fill('rgba(50%,67%,100%,1.0)');
         stroke(175);
         sidebar = rect(0, 0, sidebarW, sidebarH);
         sidebarBox = new Box(0,0, sidebarW, sidebarH);
