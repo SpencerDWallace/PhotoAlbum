@@ -1,13 +1,16 @@
+const targetElement = document.querySelector('#screen');
+
+
 var windowW = $(window).width(); var windowH = $(window).height(); var cnv; var browserZoomLevel;
 var sidebarActive = false; var sidebar; var sidebarW = windowW / 40; var sidebarH = windowH / 25;
 var menuAnimation = false; var menuW; var menuH;  var header; var sideMenuExitBox; var sidebarBox;
 var s20; var s21; var wed; var numAlb = 3; var album = new Array(numAlb); var nullAlbum; var mobile;
 let albumW; let albumH; let albumSpace; let photo; var previewsCreated = false; var hovering = false;
 let currentPhoto = 0; let currentAlbumMax = new Array(numAlb); let imageSuccessfullyLoaded = false; let curAlbum = -1;
-var mainImage; var imageLoading = false;
-var rightBox; var leftBox;
-/*const targetElement = document.querySelector('#screen');
-bodyScrollLock.disableBodyScroll(targetElement);*/
+var mainImage; var imageLoading = false; var mainTitle;
+var rightBox; var leftBox; var res;
+
+
 
 function setup()
 {
@@ -70,8 +73,9 @@ function drawMainFrame()
     stroke('rgba(50%,67%,100%,0.6)');
     fill('rgba(80%,80%,80%,0.4)');
 
-    if(mainImage!= null) {
-        let res = mainImage.size().height / mainImage.size().width;
+
+
+        //let res = mainImage.size().height / mainImage.size().width;
         stroke(150);
         fill('rgba(80%,80%,80%,0.4)');
         rect(windowW / 3 - 22, windowH / 2 - windowW / 6 * res - 22, windowW / 3 + 44, windowW / 3 * res + 44);
@@ -87,7 +91,7 @@ function drawMainFrame()
         stroke(150);
         fill('rgba(80%,80%,80%,0.4)');
         rect(windowW / 3 - 1, windowH / 2 - windowW / 6 * res - 1, windowW / 3 + 2, windowW / 3 * res + 2);
-    }
+
     //end frame
     //buttons
     let x = (menuW*2 - (windowW/3 + 44))/2;
@@ -100,13 +104,15 @@ function drawMainFrame()
     leftBox = new Box(menuW + x, windowH/2 - x*1.5, menuW + 3*x, windowH/2 + x*1.5);
     rightBox = new Box(menuW + 2*menuW - x*3, windowH/2 - x*1.5, menuW + 2*menuW - x, windowH/2 + x*1.5);
 
+
+
     strokeWeight(5);
     smooth();
-    stroke('rgba(60%,60%,60%,0.6)');
-    line(menuW + x + x*0.4, windowH/2, menuW + 3*x - x*0.4, windowH/2 - x);
-    line(menuW + x + x*0.4, windowH/2, menuW + 3*x - x*0.4, windowH/2 + x);
-    line(menuW + 2*menuW - x - x*0.4, windowH/2, menuW + 2*menuW - 3*x + x*0.4, windowH/2 - x);
-    line(menuW + 2*menuW - x - x*0.4, windowH/2, menuW + 2*menuW - 3*x + x*0.4, windowH/2 + x);
+    stroke('rgba(60%,80%,100%,1)');
+    line(menuW + x + x*0.4, windowH/2+1, menuW + 3*x - x*0.4, windowH/2 - x);
+    line(menuW + x + x*0.4, windowH/2-1, menuW + 3*x - x*0.4, windowH/2 + x);
+    line(menuW + 2*menuW - x - x*0.4, windowH/2+1, menuW + 2*menuW - 3*x + x*0.4, windowH/2 - x);
+    line(menuW + 2*menuW - x - x*0.4, windowH/2-1, menuW + 2*menuW - 3*x + x*0.4, windowH/2 + x);
 }
 
 function draw()
@@ -154,6 +160,7 @@ function mouseClicked() {
             if(currentPhoto > 1) {
                 currentPhoto--;
                 loadAlbum(curAlbum);
+
             }
         }
 
@@ -162,11 +169,14 @@ function mouseClicked() {
 
 function loadAlbum(album)
 {
+    bodyScrollLock.disableBodyScroll(targetElement);
     curAlbum = album;
     //alert('current album is ' + curAlbum);
-    if(mainImage != null)
+    if(mainImage != null) {
         mainImage.remove();
-
+        mainTitle.remove();
+        mainTitle = null;
+    }
     if(album == 0 || album == 2) {
         createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.png', 'summer20', 'anonymous', imageLoaded);
     }
@@ -238,6 +248,12 @@ function imageLoaded(photo) {
     res = mainImage.size().height/mainImage.size().width;
     mainImage.size(windowW/3, windowW/3*res);
     mainImage.position(windowW/3,windowH/2 - windowW/6*res);
+    mainTitle = createElement('h1', currentPhoto + " of " + currentAlbumMax[curAlbum]);
+    mainTitle.value('' + currentPhoto + " of " + currentAlbumMax[curAlbum]);
+    mainTitle.style('font-size', eleFont + 'px');
+    mainTitle.position(windowW/2 - eleFont/5*mainTitle.value().length, 0);
+
+    bodyScrollLock.enableBodyScroll(targetElement);
 }
 
 async function drawAlbums() {
