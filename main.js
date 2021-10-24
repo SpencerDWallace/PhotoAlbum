@@ -68,7 +68,6 @@ function draw()
 }
 
 async function imageLoaded(photo) {
-    alert('made it!');
 album[curAlbum].photos = photo;
 curAlbum++;
 }
@@ -106,7 +105,7 @@ function checkAlbumClick(print)
         let y2 = album[i].box.y2 + albumW/10;
         let tempBox = new Box(x,y,x2,y2)
         if (checkRectangle(tempBox)) {
-            if(print) {
+            if() {
                 if (currentPhoto < currentAlbumMax)
                 {
                     currentPhoto++;
