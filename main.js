@@ -3,7 +3,8 @@ var sidebarActive = false; var sidebar; var sidebarW = windowW / 40; var sidebar
 var menuAnimation = false; var menuW; var menuH;  var header; var sideMenuExitBox; var sidebarBox;
 var s20; var s21; var wed; var numAlb = 3; var album = new Array(numAlb); var nullAlbum; var mobile;
 let albumW; let albumH; let albumSpace; let photo; var previewsCreated = false; var hovering = false;
-let currentPhoto = 1; let currentAlbumMax = 25; let imageSuccessfullyLoaded = false; let curAlbum = 0;
+let currentPhoto = 1; let currentAlbumMax = new Array(numAlb); let imageSuccessfullyLoaded = false; let curAlbum = 0;
+var mainImage;
 /*const targetElement = document.querySelector('#screen');
 bodyScrollLock.disableBodyScroll(targetElement);*/
 
@@ -26,6 +27,9 @@ function setup()
 
     //s20.style('font-size', eleFont + 'px'); s21.style('font-size', eleFont + 'px'); wed.style('font-size', eleFont + 'px');
 /*    for(let i = 0; i < numAlb; i++){ */
+    currentAlbumMax[0] = 25;
+    currentAlbumMax[1] = 11;
+    currentAlbumMax[2] = 25;
     let albumBoxes = new Array(numAlb);
 
 
@@ -67,27 +71,51 @@ function draw()
 
 }
 
-function mouseClicked()
-{
-    if(sidebarBox != null && checkRectangle(sidebarBox) && !sidebarActive)
+function mouseClicked() {
+    if (sidebarBox != null && checkRectangle(sidebarBox) && !sidebarActive)
         sidebarActive = true;
-    else if(sideMenuExitBox != null){
-        if (checkRectangle(sideMenuExitBox))
-        {
+    else if (sideMenuExitBox != null) {
+        if (checkRectangle(sideMenuExitBox)) {
             menuAnimation = false;
             sidebarActive = false;
             previewsCreated = false;
             removePreviews();
-        }
-        else {
-            let displayAlbum = new Album(null, null, null, null, null);
+        } else {
+            let displayAlbum;
             displayAlbum = checkAlbumClick(1);
-            //if (displayAlbum != null)
-              //  loadAlbum(displayAlbum);
+            if (displayAlbum != null);
+            {
+             if(curAlbum != displayAlbum)
+                 currentPhoto = 1;
+             loadAlbum(displayAlbum);
+
+            }
         }
     }
+}
 
+function loadAlbum(album)
+{
+    curAlbum = album
+    if(mainImage != null)
+        mainImage.remove();
 
+    let albumName;
+    let res;
+    if(album == 0 || album == 2) {
+        createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.png', 'summer20', 'anonymous', imageLoaded);
+    }
+    else if(album == 1) {
+        createImg('https://spencerdwallace.github.io/PhotoAlbum/summer21/' + currentPhoto + '.jpg', 'summer21', 'anonymous', imageLoaded);
+    }
+    /*
+    res = mainImage.size().height/mainImage.size().width;
+    mainImage.size(windowW/3, windowW/3*res);
+    mainImage.position(windowW/3,windowH/2 - windowW/6*res);
+    fill(100);
+    rect(windowW/3, windowH/2 - windowW/6*res, windowW/3, windowW/3*res);
+    alert('made it! Album is: ' + album + ' current phtoto is: ' + currentPhoto);
+*/
 }
 
 function checkAlbumClick(print)
@@ -101,7 +129,7 @@ function checkAlbumClick(print)
         let tempBox = new Box(x,y,x2,y2)
         if (checkRectangle(tempBox)) {
             if(print) {
-                if (currentPhoto < currentAlbumMax)
+                if (currentPhoto < currentAlbumMax[curAlbum])
                 {
                     currentPhoto++;
                     removePreviews();
@@ -155,10 +183,10 @@ function removePreviews()
 }
 
 function imageLoaded(photo) {
-    album[curAlbum].photos = photo;
-    album[curAlbum].photos.size(album[curAlbum].box.x2 - album[curAlbum].box.x, album[curAlbum].box.x2 - album[curAlbum].box.x);
-    album[curAlbum].photos.position(album[curAlbum].box.x, album[curAlbum].box.y);
-    console.log('Image loaded for: ' + curAlbum);
+    mainImage = photo;
+    res = mainImage.size().height/mainImage.size().width;
+    mainImage.size(windowW/3, windowW/3*res);
+    mainImage.position(windowW/3,windowH/2 - windowW/6*res);
 }
 
 async function drawAlbums() {
@@ -182,18 +210,18 @@ async function drawAlbums() {
             hovering = false;
             //removePreviews();
 
-            for(let a = 0; a < numAlb; a++)
-            {
-                if(album[a].box.x < (3 * menuW) / 8) {
+            for(let a = 0; a < numAlb; a++) {
+                if (album[a].box.x < (3 * menuW) / 8) {
 
-                    album[a].box.x += albumW/10;
-                    album[a].box.x2 -= albumW/10;
-                    album[a].box.y += albumW/10;
-                    album[a].box.y2 -= albumW/10;
-
-                    album[a].photos.size(album[a].box.x2 - album[a].box.x, album[a].box.x2 - album[a].box.x)
-                    album[a].photos.position(album[a].box.x, album[a].box.y)
-                    album[a].title.position(album[a].box.x, album[a].box.y2 );
+                    album[a].box.x += albumW / 10;
+                    album[a].box.x2 -= albumW / 10;
+                    album[a].box.y += albumW / 10;
+                    album[a].box.y2 -= albumW / 10;
+                    if (album[a].photos != null) {
+                        album[a].photos.size(album[a].box.x2 - album[a].box.x, album[a].box.x2 - album[a].box.x)
+                        album[a].photos.position(album[a].box.x, album[a].box.y)
+                        album[a].title.position(album[a].box.x, album[a].box.y2);
+                    }
                 }
             }
             //i = 0;
@@ -219,15 +247,15 @@ async function drawAlbums() {
         rect(x - 5, y - 5, x2 + 10, x2 + 10);
 
         if (album[i].photos == null) {
-            curAlbum = i;
-            if(i == 0) {
-                await createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.jpg', 'summer20', 'anonymous', imageLoaded);
-                await createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + currentPhoto + '.JPG', 'summer20', 'anonymous', imageLoaded);
+       
+            if(i == 0 || i == 2) {
+                album[i].photos = createImg('https://spencerdwallace.github.io/PhotoAlbum/summer20/' + 1 + '.png', 'summer20', 'anonymous');
             }
             else if(i == 1){
-                await createImg('https://spencerdwallace.github.io/PhotoAlbum/summer21/' + currentPhoto + '.jpg', 'summer21', 'anonymous', imageLoaded);
-
+                album[i].photos = createImg('https://spencerdwallace.github.io/PhotoAlbum/summer21/' + 1 + '.jpg', 'summer21', 'anonymous');
             }
+            album[i].photos.size(album[i].box.x2 - album[i].box.x, album[i].box.x2 - album[i].box.x);
+            album[i].photos.position(album[i].box.x, album[i].box.y);
             //alert('Made it to JPG iteration: ' + i);
             //imageSuccessfullyLoaded = false;
             //alert('title created for ' + i);
